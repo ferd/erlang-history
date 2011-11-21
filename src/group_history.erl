@@ -1,4 +1,4 @@
--module(history).
+-module(group_history).
 -export([load/0, add/1]).
 
 -define(DEFAULT_HIST_FILE, ".erlang-hist").
