@@ -6,6 +6,12 @@ The history supported is the one available through up/down arrows on the keyboar
 
 ## How to install ##
 
+Automatically:
+
+ `$ make install`
+
+Manually:
+
 1. Compile the two files (`erl -make`).
 2. Take the `.beam` files in `ebin/` and move them to `$ROOT/lib/kernel-$VSN/ebin/` for the OTP release of your choice.
 3. Start the Erlang shell associated with this version of the Erlang/OTP kernel to gain shell history.
