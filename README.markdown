@@ -85,6 +85,10 @@ If you want the demo code that handled these things, let me know.
 
 DETS repairing of tables should be properly supported. In case of a database corrupted beyond repair, removing the DB file and starting over again will work fine.
 
+### What Versions of Erlang/OTP does this work with? ###
+
+I've only tested it with R14B03, R14B04 and R15B. It worked fine for them. I had reports of things failing for R13B versions and do not plan on supporting them.
+
 ## Author ##
 
 - Fred Hebert (ferd, MononcQc).
