@@ -485,7 +485,7 @@ get_line1({undefined,{_A,Mode,Char},Cs,Cont,Rs}, Drv, Ls0, Encoding)
   when ((Mode =:= none) and (Char =:= $\^P))
        or ((Mode =:= meta_left_sq_bracket) and (Char =:= $A)) ->
     send_drv_reqs(Drv, Rs),
-    case up_stack(save_line(Ls0, edlin:current_line(Cont))) of
+    case up_stack(save_line(Ls0, current_line(Cont))) of
 	{none,_Ls} ->
 	    send_drv(Drv, beep),
 	    get_line1(edlin:edit_line(Cs, Cont), Drv, Ls0, Encoding);
@@ -502,7 +502,7 @@ get_line1({undefined,{_A,Mode,Char},Cs,Cont,Rs}, Drv, Ls0, Encoding)
   when ((Mode =:= none) and (Char =:= $\^N))
        or ((Mode =:= meta_left_sq_bracket) and (Char =:= $B)) ->
     send_drv_reqs(Drv, Rs),
-    case down_stack(save_line(Ls0, edlin:current_line(Cont))) of
+    case down_stack(save_line(Ls0, current_line(Cont))) of
 	{none,_Ls} ->
 	    send_drv(Drv, beep),
 	    get_line1(edlin:edit_line(Cs, Cont), Drv, Ls0, Encoding);
@@ -710,3 +710,6 @@ append(L1, L2, _) when is_list(L1) ->
     L1++L2;
 append(_Eof, L, _) ->
     L.
+
+current_line({line,_,{Bef, Aft},_}) ->
+        lists:reverse(Bef, Aft ++ "\n").
