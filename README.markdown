@@ -12,10 +12,11 @@ Automatically:
 
 Manually:
 
-1. Compile the two files (`erl -make`).
-2. Take the `.beam` files in `ebin/` and move them to `$ROOT/lib/kernel-$VSN/ebin/` for the OTP release of your choice.
-3. Start the Erlang shell associated with this version of the Erlang/OTP kernel to gain shell history.
-4. In case you want to remove the patch, just recompile `$ROOT$/lib/kernel-$VSN/src/group.erl`, and move the resulting `.beam` back into the `ebin/` directory. Alternatively, make a backup beforehand.
+1. Find out what version of the Kernel library you're using by using `application:which_applications()` in the Erlang shell. The version number is the last element of the tuple.
+2. Compile the files (`erl -make`).
+3. Take the `.beam` files in `ebin/$VSN/` and move them to `$ROOT/lib/kernel-$VSN/ebin/` for the OTP release of your choice.
+4. Start the Erlang shell associated with this version of the Erlang/OTP kernel to gain shell history.
+5. In case you want to remove the patch, just recompile `$ROOT$/lib/kernel-$VSN/src/group.erl`, and move the resulting `.beam` back into the `ebin/` directory. Alternatively, make a backup beforehand.
 
 ## Configuration Options & Features ##
 
@@ -96,3 +97,4 @@ I've only tested it with R14B03, R14B04 and R15B. It worked fine for them. I had
 ## Thanks ##
 
 Thanks to Robert Virding & Felix Lange for the guidance through Erlang's IO system and the fun discussions at the 2011 EUC's hackathon. It was a pretty fun day and that's where I first prototyped this.
+Thanks to Richard Jones for providing the original Makefile for this, and Radosław Szymczyszyn for the fixes to make things work with R13B04.
