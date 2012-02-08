@@ -32,13 +32,16 @@ load() ->
     end.
 
 load_history(S) ->
-    Ct = case dets:lookup(?TABLE, ct) of
+    case dets:lookup(?TABLE, ct) of
         [] -> % 1st run
             dets:insert(?TABLE, {ct,1}),
-            1;
-        [{ct,OldCt}] -> OldCt
-    end,
-    load(Ct, Ct-S).
+            load(1, 1-S);
+        [{ct,OldCt}] ->
+            load(OldCt, OldCt-S);
+        {error,{{bad_object,_Reason},TableFile}} ->
+            corrupt_warning(TableFile),
+            []
+    end.
 
 %% Repairing the table means we need to spawn a new process to do it for us.
 %% That process will then try to message the current group leader with mentions
@@ -83,10 +86,14 @@ add(Line) -> add(Line, opt(hist)).
 add(Line, true) ->
     case lists:member(Line, opt(hist_drop)) of
         false ->
-            [{ct, Ct}] = dets:lookup(?TABLE, ct),
-            dets:insert(?TABLE, {Ct, Line}),
-            dets:delete(?TABLE, Ct-opt(hist_size)),
-            dets:update_counter(?TABLE, ct, {2,1});
+            case dets:lookup(?TABLE, ct) of
+                [{ct, Ct}] ->
+                    dets:insert(?TABLE, {Ct, Line}),
+                    dets:delete(?TABLE, Ct-opt(hist_size)),
+                    dets:update_counter(?TABLE, ct, {2,1});
+                {error,{{bad_object,_Reason},HistFile}} ->
+                    corrupt_warning(HistFile)
+            end;
         true ->
             ok
     end;
@@ -172,8 +179,12 @@ load(N, _) when N =< 0 -> [];
 load(N, M) when N =< M -> truncate(M), [];
 load(N, M) ->
     case dets:lookup(?TABLE, N-1) of
+    %case dets:lookup(?TABLE, N-1) of
         [] -> []; % nothing in history
-        [{_,Entry}] -> [Entry | load(N-1,M)]
+        [{_,Entry}] -> [Entry | load(N-1,M)];
+        {error, {{bad_object,_Reason},_TableFile}} ->
+            corrupt_entry_warning(),
+            load(N-1,M)
     end.
 
 %% If the history size was changed between two shell sessions, we have to
@@ -182,3 +193,33 @@ truncate(N) when N =< 0 -> ok;
 truncate(N) ->
     dets:delete(?TABLE, N),
     truncate(N-1).
+
+
+corrupt_entry_warning() ->
+    case get('$#erlang-history-entry-corrupted') of
+        undefined ->
+            io:format(standard_error,
+                      "An erlang-history entry was corrupted by DETS. "
+                      "Skipping entry...~n", []),
+            put('$#erlang-history-entry-corrupted',true),
+            ok;
+        true ->
+            ok
+    end.
+
+corrupt_warning(TableFile) ->
+    case get('$#erlang-history-corrupted') of
+        undefined ->
+            io:format(standard_error,
+                      "The erlang-history file at ~s was corrupted by DETS. "
+                      "An attempt to repair the file will be made, but "
+                      "history will be ignored for the rest of this session. If the "
+                      "problem persists, please delete the history file "
+                      "(and maybe submit it with a bug report).~n", [TableFile]),
+            dets:open_file(?TABLE, [{file,(opts())#opts.hist_file},{auto_save, opt(hist_auto_save)},{repair,force}]),
+            dets:close(?TABLE),
+            put('$#erlang-history-corrupted',true),
+            ok;
+        true ->
+            ok
+    end.
