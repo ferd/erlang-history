@@ -212,12 +212,12 @@ corrupt_warning(TableFile) ->
         undefined ->
             io:format(standard_error,
                       "The erlang-history file at ~s was corrupted by DETS. "
-                      "An attempt to repair the file will be made, but "
+                      "An attempt to repair the file will be made, but if it fails, "
                       "history will be ignored for the rest of this session. If the "
                       "problem persists, please delete the history file "
                       "(and maybe submit it with a bug report).~n", [TableFile]),
-            dets:open_file(?TABLE, [{file,(opts())#opts.hist_file},{auto_save, opt(hist_auto_save)},{repair,force}]),
             dets:close(?TABLE),
+            dets:open_file(?TABLE, [{file,(opts())#opts.hist_file},{auto_save, opt(hist_auto_save)},{repair,force}]),
             put('$#erlang-history-corrupted',true),
             ok;
         true ->
