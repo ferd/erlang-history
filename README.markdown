@@ -88,7 +88,7 @@ DETS repairing of tables should be properly supported. In case of a database cor
 
 ### What Versions of Erlang/OTP does this work with? ###
 
-I've only tested it with R14B03, R14B04 and R15B. It worked fine for them. I had reports of things failing for R13B versions and do not plan on supporting them.
+I've tested it with all versions from R13B04 up to R15B. It worked fine for them. I plan on supporting all newer versions. ALL OF THEM.
 
 ## Author ##
 
@@ -97,4 +97,5 @@ I've only tested it with R14B03, R14B04 and R15B. It worked fine for them. I had
 ## Thanks ##
 
 Thanks to Robert Virding & Felix Lange for the guidance through Erlang's IO system and the fun discussions at the 2011 EUC's hackathon. It was a pretty fun day and that's where I first prototyped this.
+
 Thanks to Richard Jones for providing the original Makefile for this, and Radosław Szymczyszyn for the fixes to make things work with R13B04.
