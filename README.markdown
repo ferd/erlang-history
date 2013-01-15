@@ -6,7 +6,7 @@ The history supported is the one available through up/down arrows on the keyboar
 
 ## How to install ##
 
-Automatically:
+Automatically (you may need to run this command with `sudo`):
 
  `$ make install`
 
@@ -98,4 +98,4 @@ I've tested it with all versions from R13B04 up to R15B03. It worked fine for th
 
 Thanks to Robert Virding & Felix Lange for the guidance through Erlang's IO system and the fun discussions at the 2011 EUC's hackathon. It was a pretty fun day and that's where I first prototyped this.
 
-Thanks to Richard Jones for providing the original Makefile for this, and Radosław Szymczyszyn for the fixes to make things work with R13B04.
+Thanks to Richard Jones for providing the original Makefile for this, Alexander Alexeev for making the installing procedure more general, and Radosław Szymczyszyn for the fixes to make things work with R13B04.
