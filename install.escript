@@ -3,6 +3,8 @@
 -module(install).
 -export([main/0, main/1]).
 
+-define(BACKUP, "group.beam.backup-pre-shell-history").
+
 main(_) -> main().
 
 main() ->
@@ -17,16 +19,24 @@ main() ->
     ),
     io:format("Path = ~s~nVersion = ~s~n", [Path, Version]),
 
-    BackupCmd = io_lib:format(
-      "cp -n \"~s/group.beam\" \"~s/group.beam.backup-pre-shell-history\"",
-      [Path, Path]
-    ),
-    io:format("Backing up existing file~n"),
-    os:cmd(BackupCmd),
+    % check if the backup exists and only continue if it doesn't
+    Backup = lists:flatten(io_lib:format("~s/" ++ ?BACKUP, [Path])),
+    BackupExists = filelib:is_regular(Backup),
+    case BackupExists of
+        true  ->
+            ok;
+        false ->
+            BackupCmd = io_lib:format(
+                  "cp -n \"~s/group.beam\" \"~s/" ++ ?BACKUP ++ "\"",
+                  [Path, Path]
+                 ),
+            io:format("Backing up existing file~n"),
+            os:cmd(BackupCmd),
 
-    CopyCmd = io_lib:format(
-      "cp ebin/~s/*.beam \"~s\"",
-      [Version, Path]
-    ),
-    io:format("Installing...~n"),
-    os:cmd(CopyCmd).
+            CopyCmd = io_lib:format(
+                "cp ebin/~s/*.beam \"~s\"",
+                [Version, Path]
+               ),
+            io:format("Installing...~n"),
+            os:cmd(CopyCmd)
+    end.
