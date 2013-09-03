@@ -40,6 +40,9 @@ load_history(S) ->
             load(OldCt, OldCt-S);
         {error,{{bad_object,_Reason},TableFile}} ->
             corrupt_warning(TableFile),
+            [];
+        {error,{bad_object_header,TableFile}} ->
+            corrupt_warning(TableFile),
             []
     end.
 
@@ -92,6 +95,8 @@ add(Line, true) ->
                     dets:delete(?TABLE, Ct-opt(hist_size)),
                     dets:update_counter(?TABLE, ct, {2,1});
                 {error,{{bad_object,_Reason},HistFile}} ->
+                    corrupt_warning(HistFile);
+                {error,{bad_object_header, HistFile}} ->
                     corrupt_warning(HistFile)
             end;
         true ->
@@ -183,6 +188,9 @@ load(N, M) ->
         [] -> []; % nothing in history
         [{_,Entry}] -> [Entry | load(N-1,M)];
         {error, {{bad_object,_Reason},_TableFile}} ->
+            corrupt_entry_warning(),
+            load(N-1,M);
+        {error, {bad_object_header,_TableFile}} ->
             corrupt_entry_warning(),
             load(N-1,M)
     end.
