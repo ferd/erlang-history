@@ -95,6 +95,8 @@ add(Line, true) ->
                     dets:delete(?TABLE, Ct-opt(hist_size)),
                     dets:update_counter(?TABLE, ct, {2,1});
                 {error,{{bad_object,_Reason},HistFile}} ->
+                    corrupt_warning(HistFile);
+                {error,{bad_object_header, HistFile}} ->
                     corrupt_warning(HistFile)
             end;
         true ->
