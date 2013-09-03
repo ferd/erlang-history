@@ -40,6 +40,9 @@ load_history(S) ->
             load(OldCt, OldCt-S);
         {error,{{bad_object,_Reason},TableFile}} ->
             corrupt_warning(TableFile),
+            [];
+        {error,{bad_object_header,TableFile}} ->
+            corrupt_warning(TableFile),
             []
     end.
 
@@ -183,6 +186,9 @@ load(N, M) ->
         [] -> []; % nothing in history
         [{_,Entry}] -> [Entry | load(N-1,M)];
         {error, {{bad_object,_Reason},_TableFile}} ->
+            corrupt_entry_warning(),
+            load(N-1,M);
+        {error, {bad_object_header,_TableFile}} ->
             corrupt_entry_warning(),
             load(N-1,M)
     end.
