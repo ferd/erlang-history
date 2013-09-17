@@ -24,6 +24,7 @@ main() ->
     BackupExists = filelib:is_regular(Backup),
     case BackupExists of
         true  ->
+            io:format("Backup of group.beam exists~n"),
             ok;
         false ->
             BackupCmd = io_lib:format(
@@ -31,12 +32,11 @@ main() ->
                   [Path, Path]
                  ),
             io:format("Backing up existing file~n"),
-            os:cmd(BackupCmd),
-
-            CopyCmd = io_lib:format(
-                "cp ebin/~s/*.beam \"~s\"",
-                [Version, Path]
-               ),
-            io:format("Installing...~n"),
-            os:cmd(CopyCmd)
-    end.
+            os:cmd(BackupCmd)
+    end,
+    CopyCmd = io_lib:format(
+            "cp ebin/~s/*.beam \"~s\"",
+            [Version, Path]
+            ),
+    io:format("Installing...~n"),
+    os:cmd(CopyCmd).
