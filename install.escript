@@ -3,7 +3,8 @@
 -module(install).
 -export([main/0, main/1]).
 
--define(BACKUP, "group.beam.backup-pre-shell-history").
+-define(BACKUP_SUFFIX, ".backup-pre-shell-history").
+-define(BACKUP, "group.beam" ++ ?BACKUP_SUFFIX).
 
 main(_) -> main().
 
@@ -18,6 +19,8 @@ main() ->
         ]
     ),
     io:format("Path = ~s~nVersion = ~s~n", [Path, Version]),
+
+    update_kernel_app_file(Path ++ "/kernel.app"),
 
     % check if the backup exists and only continue if it doesn't
     Backup = lists:flatten(io_lib:format("~s/" ++ ?BACKUP, [Path])),
@@ -40,3 +43,28 @@ main() ->
             ),
     io:format("Installing...~n"),
     os:cmd(CopyCmd).
+
+%% Inject "group_history" into the modules list of kernel.app
+%% Otherwise creating releases from this install results in errors
+%% due to group trying to hit up a missing group_history module.
+update_kernel_app_file(Path) ->
+    {ok, [{application, kernel, Sections}]} = file:consult(Path),
+    ModList = proplists:get_value(modules, Sections),
+    case lists:member(group_history, ModList) of
+        true -> 
+            ok;
+        false ->
+            NewModList = [group_history | ModList],
+            NewSections = [ {modules, NewModList} 
+                            | proplists:delete(modules, Sections) ],
+            AppSpec = {application, kernel, NewSections},
+            AppContents = io_lib:format("~p.",[AppSpec]),
+            BackupPath = Path ++ ?BACKUP_SUFFIX,
+            file:delete(BackupPath),
+            {ok, _} = file:copy(Path, BackupPath),
+            file:delete(Path),
+            ok = file:write_file(Path, AppContents),
+            io:format("Injected 'group_history' into modules list of kernel.app~n"),
+            io:format("Backup of kernel.app saved to: ~s~n", [BackupPath]),
+            ok
+    end.
