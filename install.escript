@@ -21,28 +21,8 @@ main() ->
     io:format("Path = ~s~nVersion = ~s~n", [Path, Version]),
 
     update_kernel_app_file(Path ++ "/kernel.app"),
+    update_modules(Path, Version).
 
-    % check if the backup exists and only continue if it doesn't
-    Backup = lists:flatten(io_lib:format("~s/" ++ ?BACKUP, [Path])),
-    BackupExists = filelib:is_regular(Backup),
-    case BackupExists of
-        true  ->
-            io:format("Backup of group.beam exists~n"),
-            ok;
-        false ->
-            BackupCmd = io_lib:format(
-                  "cp -n \"~s/group.beam\" \"~s/" ++ ?BACKUP ++ "\"",
-                  [Path, Path]
-                 ),
-            io:format("Backing up existing file~n"),
-            os:cmd(BackupCmd)
-    end,
-    CopyCmd = io_lib:format(
-            "cp ebin/~s/*.beam \"~s\"",
-            [Version, Path]
-            ),
-    io:format("Installing...~n"),
-    os:cmd(CopyCmd).
 
 %% Inject "group_history" into the modules list of kernel.app
 %% Otherwise creating releases from this install results in errors
@@ -52,6 +32,7 @@ update_kernel_app_file(Path) ->
     ModList = proplists:get_value(modules, Sections),
     case lists:member(group_history, ModList) of
         true -> 
+            io:format("group_history already in modules list of kernel.app~n"),
             ok;
         false ->
             NewModList = [group_history | ModList],
@@ -68,3 +49,27 @@ update_kernel_app_file(Path) ->
             io:format("Backup of kernel.app saved to: ~s~n", [BackupPath]),
             ok
     end.
+
+update_modules(Path, Version) ->
+    %% check if the backup exists and only create one if it doesn't
+    Backup = lists:flatten(io_lib:format("~s/" ++ ?BACKUP, [Path])),
+    BackupExists = filelib:is_regular(Backup),
+    case BackupExists of
+        true  ->
+            io:format("Backup of group.beam exists~n"),
+            ok;
+        false ->
+            BackupCmd = io_lib:format(
+                  "cp -n \"~s/group.beam\" \"~s/" ++ ?BACKUP ++ "\"",
+                  [Path, Path]
+                 ),
+            io:format("Backing up existing file~n"),
+            os:cmd(BackupCmd)
+    end,
+    %% add in the modified group.erl and the new group_history.erl
+    CopyCmd = io_lib:format(
+            "cp ebin/~s/*.beam \"~s\"",
+            [Version, Path]
+            ),
+    io:format("Installing...~n"),
+    os:cmd(CopyCmd).
