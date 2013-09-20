@@ -15,8 +15,9 @@ Manually:
 1. Find out what version of the Kernel library you're using by using `application:which_applications()` in the Erlang shell. The version number is the last element of the tuple.
 2. Compile the files (`erl -make`).
 3. Take the `.beam` files in `ebin/$VSN/` and move them to `$ROOT/lib/kernel-$VSN/ebin/` for the OTP release of your choice.
-4. Start the Erlang shell associated with this version of the Erlang/OTP kernel to gain shell history.
-5. In case you want to remove the patch, just recompile `$ROOT$/lib/kernel-$VSN/src/group.erl`, and move the resulting `.beam` back into the `ebin/` directory. Alternatively, make a backup beforehand.
+4. Open the kernel app file (`$ROOT/lib/kernel-$VSN/ebin/kernel.app`) and add `group_history` to the modules list.
+5. Start the Erlang shell associated with this version of the Erlang/OTP kernel to gain shell history.
+6. In case you want to remove the patch, just recompile `$ROOT$/lib/kernel-$VSN/src/group.erl`, and move the resulting `.beam` back into the `ebin/` directory. Alternatively, make a backup beforehand. Don't forget to remove the `group_history` module from the kernel app file's modules list.
 
 ## Configuration Options & Features ##
 
@@ -98,4 +99,4 @@ I've tested it with all versions from R13B04 up to R16B02. It worked fine for th
 
 Thanks to Robert Virding & Felix Lange for the guidance through Erlang's IO system and the fun discussions at the 2011 EUC's hackathon. It was a pretty fun day and that's where I first prototyped this.
 
-Thanks to Richard Jones for providing the original Makefile for this, Alexander Alexeev for making the installing procedure more general, and Radosław Szymczyszyn for the fixes to make things work with R13B04.
+Thanks to Richard Jones for providing the original Makefile for this and fixing a bug when generating releases, Alexander Alexeev for making the installing procedure more general, and Radosław Szymczyszyn for the fixes to make things work with R13B04.
