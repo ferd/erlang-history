@@ -1,3 +1,4 @@
+{["src/3.0.1/*"], [debug_info, {outdir, "ebin/3.0.1"}]}. % 17.1
 {["src/3.0/*"], [debug_info, {outdir, "ebin/3.0"}]}. % 17.0
 {["src/2.16.4/*"], [debug_info, {outdir, "ebin/2.16.4"}]}. % R16B03
 {["src/2.16.3/*"], [debug_info, {outdir, "ebin/2.16.3"}]}. % R16B02
