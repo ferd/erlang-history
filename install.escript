@@ -31,12 +31,12 @@ update_kernel_app_file(Path) ->
     {ok, [{application, kernel, Sections}]} = file:consult(Path),
     ModList = proplists:get_value(modules, Sections),
     case lists:member(group_history, ModList) of
-        true -> 
+        true ->
             io:format("group_history already in modules list of kernel.app~n"),
             ok;
         false ->
             NewModList = [group_history | ModList],
-            NewSections = [ {modules, NewModList} 
+            NewSections = [ {modules, NewModList}
                             | proplists:delete(modules, Sections) ],
             AppSpec = {application, kernel, NewSections},
             AppContents = io_lib:format("~p.",[AppSpec]),
@@ -64,7 +64,7 @@ update_modules(Path, Version) ->
                   [Path, Path]
                  ),
             io:format("Backing up existing file~n"),
-            os:cmd(BackupCmd)
+            io:format("~s", [os:cmd(BackupCmd)])
     end,
     %% add in the modified group.erl and the new group_history.erl
     CopyCmd = io_lib:format(
@@ -72,4 +72,4 @@ update_modules(Path, Version) ->
             [Version, Path]
             ),
     io:format("Installing...~n"),
-    os:cmd(CopyCmd).
+    io:format("~s", [os:cmd(CopyCmd)]).
