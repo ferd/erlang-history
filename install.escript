@@ -6,7 +6,6 @@
 -define(BACKUP_SUFFIX, ".backup-pre-shell-history").
 -define(BACKUP, "group.beam" ++ ?BACKUP_SUFFIX).
 
-main(_) -> main().
 
 main() ->
     Path = io_lib:format("~s/ebin",[code:lib_dir(kernel)]),
@@ -18,10 +17,13 @@ main() ->
           )
         ]
     ),
-    io:format("Path = ~s~nVersion = ~s~n", [Path, Version]),
+    main([Path, Version]).
 
+main([Path, Version]) ->
+    io:format("Path = ~s~nVersion = ~s~n", [Path, Version]),
     update_kernel_app_file(Path ++ "/kernel.app"),
-    update_modules(Path, Version).
+    update_modules(Path, Version);
+main(_) -> main().
 
 
 %% Inject "group_history" into the modules list of kernel.app
