@@ -27,7 +27,11 @@ load() ->
             %% we wait to reply to ourselves in some circumstances.
             case dets:open_file(?TABLE, [{file,F}, {auto_save, opt(hist_auto_save)}, {repair, false}]) of
                 {ok, ?TABLE} -> load_history(S);
-                {error, {needs_repair, F}} -> repair_table(F)
+                {error, {needs_repair, F}} -> repair_table(F);
+                {error, _} ->
+                    %% Turn off history if all fails
+                    application:set_env(kernel, hist, false),
+                    []
             end
     end.
 
