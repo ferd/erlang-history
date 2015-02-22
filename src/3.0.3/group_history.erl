@@ -27,7 +27,12 @@ load() ->
             %% we wait to reply to ourselves in some circumstances.
             case dets:open_file(?TABLE, [{file,F}, {auto_save, opt(hist_auto_save)}, {repair, false}]) of
                 {ok, ?TABLE} -> load_history(S);
-                {error, {needs_repair, F}} -> repair_table(F)
+                {error, {needs_repair, F}} -> repair_table(F);
+                {error, Error} ->
+                    %% We can't recover from this.
+                    unknown_error_warning(Error),
+                    application:set_env(kernel, hist, false),
+                    []
             end
     end.
 
@@ -227,6 +232,26 @@ corrupt_warning(TableFile) ->
             dets:close(?TABLE),
             dets:open_file(?TABLE, [{file,(opts())#opts.hist_file},{auto_save, opt(hist_auto_save)},{repair,force}]),
             put('$#erlang-history-corrupted',true),
+            ok;
+        true ->
+            ok
+    end.
+
+unknown_error_warning(Error) ->
+    case get('$#erlang-history-unknown-error') of
+        undefined ->
+            %% Don't display if we're user -- children will send it on our
+            %% behalf
+            case process_info(self(), registered_name) of
+                {registered_name, user} ->
+                    ok;
+                _ ->
+                    io:format(standard_error,
+                              "The erlang-history file could not be opened, and "
+                              "history will be ignored for the rest of the session.~n"
+                              "The error received was: ~p~n", [Error])
+            end,
+            put('$#erlang-history-unknown-error',true),
             ok;
         true ->
             ok
