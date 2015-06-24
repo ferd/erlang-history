@@ -74,4 +74,4 @@ update_modules(Path, Version) ->
             [Version, Path]
             ),
     io:format("Installing...~n"),
-    io:format("~s", [os:cmd(CopyCmd)]).
+    io:format("~ts", [os:cmd(CopyCmd)]).
