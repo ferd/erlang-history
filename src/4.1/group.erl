@@ -3,16 +3,17 @@
 %%
 %% Copyright Ericsson AB 1996-2013. All Rights Reserved.
 %%
-%% The contents of this file are subject to the Erlang Public License,
-%% Version 1.1, (the "License"); you may not use this file except in
-%% compliance with the License. You should have received a copy of the
-%% Erlang Public License along with this software. If not, it can be
-%% retrieved online at http://www.erlang.org/.
+%% Licensed under the Apache License, Version 2.0 (the "License");
+%% you may not use this file except in compliance with the License.
+%% You may obtain a copy of the License at
 %%
-%% Software distributed under the License is distributed on an "AS IS"
-%% basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
-%% the License for the specific language governing rights and limitations
-%% under the License.
+%%     http://www.apache.org/licenses/LICENSE-2.0
+%%
+%% Unless required by applicable law or agreed to in writing, software
+%% distributed under the License is distributed on an "AS IS" BASIS,
+%% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+%% See the License for the specific language governing permissions and
+%% limitations under the License.
 %%
 %% %CopyrightEnd%
 %%
@@ -39,7 +40,7 @@ server(Drv, Shell, Options) ->
 	proplists:get_value(expand_fun, Options,
 			    fun(B) -> edlin_expand:expand(B) end)),
     put(echo, proplists:get_value(echo, Options, true)),
-
+    
     start_shell(Shell),
     server_loop(Drv, get(shell), []).
 
@@ -174,7 +175,7 @@ set_unicode_state(Drv,Bool) ->
     after 2000 ->
 	    timeout
     end.
-
+			   
 
 io_request(Req, From, ReplyAs, Drv, Buf0) ->
     case io_request(Req, Drv, {From,ReplyAs}, Buf0) of
@@ -196,12 +197,12 @@ io_request(Req, From, ReplyAs, Drv, Buf0) ->
     end.
 
 
-%% Put_chars, unicode is the normal message, characters are always in
+%% Put_chars, unicode is the normal message, characters are always in 
 %%standard unicode
 %% format.
-%% You might be tempted to send binaries unchecked, but the driver
+%% You might be tempted to send binaries unchecked, but the driver 
 %% expects unicode, so that is what we should send...
-%% io_request({put_chars,unicode,Binary}, Drv, Buf) when is_binary(Binary) ->
+%% io_request({put_chars,unicode,Binary}, Drv, Buf) when is_binary(Binary) -> 
 %%     send_drv(Drv, {put_chars,Binary}),
 %%     {ok,ok,Buf};
 %%
@@ -229,7 +230,7 @@ io_request({put_chars,unicode,M,F,As}, Drv, From, Buf) ->
 		    {error,{error,F},Buf}
 	    end
     end;
-io_request({put_chars,latin1,Binary}, Drv, From, Buf) when is_binary(Binary) ->
+io_request({put_chars,latin1,Binary}, Drv, From, Buf) when is_binary(Binary) -> 
     send_drv(Drv, {put_chars_sync, unicode,
                    unicode:characters_to_binary(Binary,latin1),
                    {From,ok}}),
@@ -361,7 +362,7 @@ expand_encoding([H|T]) ->
 setopts(Opts0,Drv,Buf) ->
     Opts = proplists:unfold(
 	     proplists:substitute_negations(
-	       [{list,binary}],
+	       [{list,binary}], 
 	       expand_encoding(Opts0))),
     case check_valid_opts(Opts) of
 	true ->
@@ -431,7 +432,7 @@ getopts(Drv,Buf) ->
 			_ -> latin1
 		     end},
     {ok,[Exp,Echo,Bin,Uni],Buf}.
-
+    
 
 %% get_chars(Prompt, Module, Function, XtraArgument, Drv, Buffer)
 %%  Gets characters from the input Drv until as the applied function
@@ -456,7 +457,7 @@ get_chars(Prompt, M, F, Xa, Drv, Buf, Encoding) ->
     get_chars_loop(Pbs, M, F, Xa, Drv, Buf, start, Encoding).
 
 get_chars_loop(Pbs, M, F, Xa, Drv, Buf0, State, Encoding) ->
-    Result = case get(echo) of
+    Result = case get(echo) of 
 		 true ->
 		     get_line(Buf0, Pbs, Drv, Encoding);
 		 false ->
@@ -499,14 +500,14 @@ err_func(_, F, _) ->
 get_line(Chars, Pbs, Drv, Encoding) ->
     {more_chars,Cont,Rs} = edlin:start(Pbs),
     send_drv_reqs(Drv, Rs),
-    get_line1(edlin:edit_line(Chars, Cont), Drv, new_stack(get(line_buffer)),
+    get_line1(edlin:edit_line(Chars, Cont), Drv, new_stack(get(line_buffer)), 
 	      Encoding).
 
 get_line1({done,Line,Rest,Rs}, Drv, Ls, _Encoding) ->
     send_drv_reqs(Drv, Rs),
     save_line_buffer(Line, get_lines(Ls)),
     {done,Line,Rest};
-get_line1({undefined,{_A,Mode,Char},Cs,Cont,Rs}, Drv, Ls0, Encoding)
+get_line1({undefined,{_A,Mode,Char},Cs,Cont,Rs}, Drv, Ls0, Encoding) 
   when ((Mode =:= none) and (Char =:= $\^P))
        or ((Mode =:= meta_left_sq_bracket) and (Char =:= $A)) ->
     send_drv_reqs(Drv, Rs),
@@ -709,7 +710,7 @@ edit_line([Char|Cs],Chars) ->
 
 remainder_after_nl("") -> done;
 remainder_after_nl(Cs) -> Cs.
-
+    
 
 
 get_line_timeout(blink) -> 1000;
