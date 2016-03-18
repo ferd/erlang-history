@@ -1,3 +1,4 @@
+{["src/4.2/*"], [debug_info, {outdir, "ebin/4.2"}]}.       % 18.3
 {["src/4.1.1/*"], [debug_info, {outdir, "ebin/4.1.1"}]}.   % 18.2
 {["src/4.1/*"], [debug_info, {outdir, "ebin/4.1"}]}.       % 18.1
 {["src/4.0/*"], [debug_info, {outdir, "ebin/4.0"}]}.       % 18.0-rc2
