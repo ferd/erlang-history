@@ -26,6 +26,29 @@ main([Path, Version]) ->
 main(_) -> main().
 
 
+copy_files(Wildcard, Destination, Modes) ->
+    N = lists:foldl(
+        fun(Source, Acc) ->
+            Target = case filelib:is_dir(Destination) of
+                true  -> filename:join(Destination, filename:basename(Source));
+                false -> Destination
+            end,
+            io:format("~ts~n", [Source]),
+            Acc + case file:copy(Source, {Target, Modes}) of
+                {ok, _BytesCopied} ->
+                    {ok, FileInfo} = file:read_file_info(Source),
+                    ok = file:write_file_info(Target, FileInfo),
+                    1;
+                {error, Reason} ->
+                    io:format("~ts~n", [file:format_error(Reason)]),
+                    0
+            end
+        end,
+        0,
+        filelib:wildcard(Wildcard)),
+    io:format("~p file(s) copied~n", [N]).
+
+
 %% Inject "group_history" into the modules list of kernel.app
 %% Otherwise creating releases from this install results in errors
 %% due to group trying to hit up a missing group_history module.
@@ -44,7 +67,7 @@ update_kernel_app_file(Path) ->
             AppContents = io_lib:format("~p.",[AppSpec]),
             BackupPath = Path ++ ?BACKUP_SUFFIX,
             file:delete(BackupPath),
-            {ok, _} = file:copy(Path, BackupPath),
+            copy_files(Path, BackupPath, []),
             file:delete(Path),
             ok = file:write_file(Path, AppContents),
             io:format("Injected 'group_history' into modules list of kernel.app~n"),
@@ -61,17 +84,11 @@ update_modules(Path, Version) ->
             io:format("Backup of group.beam exists~n"),
             ok;
         false ->
-            BackupCmd = io_lib:format(
-                  "cp -n \"~s/group.beam\" \"~s/" ++ ?BACKUP ++ "\"",
-                  [Path, Path]
-                 ),
             io:format("Backing up existing file~n"),
-            io:format("~s", [os:cmd(BackupCmd)])
+            copy_files(
+                filename:join(Path, "group.beam"),
+                filename:join(Path, ?BACKUP), [exclusive])
     end,
     %% add in the modified group.erl and the new group_history.erl
-    CopyCmd = io_lib:format(
-            "cp ebin/~s/*.beam \"~s\"",
-            [Version, Path]
-            ),
     io:format("Installing...~n"),
-    io:format("~ts", [os:cmd(CopyCmd)]).
+    copy_files(filename:join(["ebin", Version, "*.beam"]), Path, []).
