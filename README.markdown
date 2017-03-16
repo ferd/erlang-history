@@ -89,7 +89,7 @@ DETS repairing of tables should be properly supported. In case of a database cor
 
 ### What Versions of Erlang/OTP does this work with? ###
 
-I've tested it with all *quarterly* versions from R13B04 up to 19.2. It worked fine for them. I plan on supporting all newer *quarterly* versions. ALL OF THEM.
+I've tested it with all *quarterly* versions from R13B04 up to 19.3. It worked fine for them. I plan on supporting all newer *quarterly* versions. ALL OF THEM.
 
 To be noted is that since release 17.0, the OTP team may silently release intermediary versions of Erlang/OTP on github as patches. An example of this is
 Erlang 17.2, which was never announced, but is installable for people who need it. Those are *not* supported explicitly, but pull requests are welcome.
