@@ -8,6 +8,7 @@
 -define(DEFAULT_SIZE, 1024*512). % 512 kb total default
 -define(DEFAULT_STATUS, enabled).
 -define(MIN_HISTORY_SIZE, (50*1024)). % 50 kb, in bytes
+-define(DEFAULT_DROP, []).
 -define(DISK_LOG_FORMAT, internal). % since we want repairs
 -define(LOG_NAME, '$#group_history').
 -define(VSN, {0,1,0}).
@@ -56,14 +57,19 @@ load() ->
 add(Line) -> add(Line, history_status()).
 
 add(Line, enabled) ->
-    case disk_log:log(?LOG_NAME, Line) of
-        ok ->
-            ok;
-        {error, no_such_log} ->
-            open_log(), % a wild attempt we hope works!
-            disk_log:log(?LOG_NAME, Line);
-        {error, _Other} ->
-            % just ignore, we're too late
+    case lists:member(Line, to_drop()) of
+        false ->
+            case disk_log:log(?LOG_NAME, Line) of
+                ok ->
+                    ok;
+                {error, no_such_log} ->
+                    open_log(), % a wild attempt we hope works!
+                    disk_log:log(?LOG_NAME, Line);
+                {error, _Other} ->
+                    % just ignore, we're too late
+                    ok
+            end;
+        true ->
             ok
     end;
 add(_Line, disabled) ->
@@ -280,6 +286,15 @@ home() ->
         _ ->
             error_logger:error_msg("No home directory found"),
             error(badarg)
+    end.
+
+to_drop() ->
+    case application:get_env(kernel, shell_history_drop) of
+        undefined ->
+            application:set_env(kernel, shell_history_drop, ?DEFAULT_DROP),
+            ?DEFAULT_DROP;
+        {ok, V} when is_list(V) -> [Ln++"\n" || Ln <- V];
+        {ok, _} -> ?DEFAULT_DROP
     end.
 
 %%%%%%%%%%%%%%%%%%%%%%%%
