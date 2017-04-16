@@ -31,7 +31,7 @@ Options include:
 
 If you are not familiar with Erlang application variables, there are two principal ways to handle them. The first one is to pass the arguments manually to `erl` as follows:
 
-    erl -kernel history_file_bytes 120000 -kernel shell_history_drop '["q().","init:stop()."]'
+    erl -kernel shell_history_file_bytes 120000 -kernel shell_history_drop '["q().","init:stop()."]'
 
 The other way is to create a configuration file, looking a bit as follows:
 
