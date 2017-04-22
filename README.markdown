@@ -1,6 +1,6 @@
 # erlang-history #
 
-erlang-history (eh) is a tiny pair of files that can be used to patch an Erlang-OTP system to add support for history in the Erlang shell.
+erlang-history is a tiny pair of files that can be used to patch an Erlang-OTP system to add support for history in the Erlang shell.
 
 The history supported is the one available through up/down arrows on the keyboard.
 
@@ -25,20 +25,19 @@ By default, the shell history will be enabled. To disable it, the kernel applica
 
 Options include:
 
-- `hist` - `true | false`: enables or disables shell history. Default value is `true`
-- `hist_file` - `string()`: gives the path to where the history should be saved. By default, the file sits in your home directory as `.erlang-history.$NODENAME`. The node name will *always* be appended to the file name as a way to manage conflicts and accounts.
-- `hist_size` - `1..N`: how many input lines the shell should remember. By default, the value is set to 500.
-- `hist_drop` - `["some", "string", ...]`: lines you do not want to be saved in the history. As an example, setting `hist_drop` to `["q().","init:stop().","halt()."]` will avoid saving most manual ways of shutting down a shell. By default, no terms are dropped.
+- `shell_history` - `enabled | disabled`: enables or disables shell history. Default value is `enabled`
+- `shell_history_file_bytes` - `51200..N`: how many bytes the shell should remember. By default, the value is set to 512kb, and the minimal value is 50kb.
+- `shell_history_drop` - `["some", "string", ...]`: lines you do not want to be saved in the history. As an example, setting `hist_drop` to `["q().","init:stop().","halt()."]` will avoid saving most manual ways of shutting down a shell. By default, no terms are dropped.
 
 If you are not familiar with Erlang application variables, there are two principal ways to handle them. The first one is to pass the arguments manually to `erl` as follows:
 
-    erl -kernel hist_size 120 -kernel hist_drop '["q().","init:stop()."]'
+    erl -kernel shell_history_file_bytes 120000 -kernel shell_history_drop '["q().","init:stop()."]'
 
 The other way is to create a configuration file, looking a bit as follows:
 
     [{kernel,[
-      {hist_size, 120},
-      {hist_drop, ["q().", "init:stop()."]}
+      {shell_history_file_bytes, 120000},
+      {shell_history_drop, ["q().", "init:stop()."]}
     ]}].
 
 Then start the Erlang shell by doing:
@@ -61,9 +60,10 @@ I also feel the whole thing is a bit too hackish and I do not believe it would b
 
 ### How do you store history? ###
 
-I've used DETS tables at this point in time, as it was (at first) easy to store stuff that way. The old requests are injected into the shell when it first starts up (and it does so for all instances of the shell on a given node. Every time a new line is typed in (as the existing shell sees it fit -- I just tied myself into the existing code), it is saved into the database.
+This branch uses `disk_log` instead of DETS for OTP 18 and above. This is an attempt at fixing repeated corruption issues with DETS. In doing so, it drops the per-session storage and always stores the data in the same place for a given computer. Because `disk_log` does not allow to just flush bits of content on rewrite (it truncates any full file), we instead use a wrap log and try to divide the configured size into up to 10 log files so that every time we rotate a log, we lose only 10% of the data. Repair should be better than those seen in DETS and the new usage should be nicer on disk.
 
-Yes, this means there is a 2GB hard limit on how much history you can store per Erlang node. I hope you won't need that, but oh well. Hopefully you don't need that much stuff.
+I've used DETS tables before this point in time, as it was (at first) easy to store stuff that way. The old requests are injected into the shell when it first starts up (and it does so for all instances of the shell on a given node. Every time a new line is typed in (as the existing shell sees it fit -- I just tied myself into the existing code), it is saved into the database.
+
 
 ### What's the license? ###
 
