@@ -33,6 +33,8 @@ load() ->
                     read_full_log(?LOG_NAME);
                 {error, {need_repair, _FileName}} ->
                     repair_log(?LOG_NAME);
+                {error, {arg_mismatch, repair, true, false}} ->
+                    repair_log(?LOG_NAME);
                 {error, {name_already_open, _}} ->
                     show_rename_warning(),
                     read_full_log(?LOG_NAME);
@@ -40,7 +42,7 @@ load() ->
                     show_size_warning(Current, New),
                     resize_log(?LOG_NAME, Current, New),
                     load();
-                {invalid_header, {vsn, Version}} ->
+                {error, {invalid_header, {vsn, Version}}} ->
                     upgrade_version(?LOG_NAME, Version),
                     load();
                 {error, Reason} ->
@@ -63,7 +65,7 @@ add(Line, enabled) ->
                 ok ->
                     ok;
                 {error, no_such_log} ->
-                    open_log(), % a wild attempt we hope works!
+                    _ = open_log(), % a wild attempt we hope works!
                     disk_log:log(?LOG_NAME, Line);
                 {error, _Other} ->
                     % just ignore, we're too late
@@ -106,27 +108,52 @@ repair_log(Name) ->
             _ ->
                 ok
         end,
-        disk_log:close(Name),
+        _ = disk_log:close(Name),
         S ! R
     end),
     %% Messages from the IO protocol will only need to be received if we
     %% currently are the group leader (in this case, the 'user' process).
     %% if this is not 'user', we can move on.
-    case process_info(self(), registered_name) of
+    _ = case process_info(self(), registered_name) of
         {registered_name, user} ->
-            receive
-                {io_request,From,ReplyAs,
-                 {put_chars,_Encoding,io_lib,format,
-                 ["disk_log:"++_, [_]]}} -> From ! {io_reply, ReplyAs, ok}
-            end;
-        _ -> ok
-    end,
-    %% now we wait for the worker to close the table, telling us it's safe
-    %% to load it on our own.
-    receive
-        R -> ok
+            accumulate_and_filter_io(R);
+        _ ->
+            ok
     end,
     load().
+
+accumulate_and_filter_io(Ref) -> accumulate_and_filter_io(Ref, []).
+
+accumulate_and_filter_io(Ref, Acc) ->
+    %% We should be fine reordering most IO messages since they don't
+    %% all come from the same process (as they'd block).
+    %% If we're fast enough, we'll even be fine to not change the
+    %% global order.
+    receive
+        {io_request,From,ReplyAs,
+         {put_chars,_Enc,io_lib,format,
+          [Txt, [_]]}} = Msg ->
+            case matches_log(Txt) of
+                true -> From ! {io_reply, ReplyAs, ok};
+                false -> accumulate_and_filter_io(Ref, [Msg|Acc])
+            end;
+        {io_request,From,ReplyAs, {put_chars,_Enc,Txt}} = Msg ->
+            case matches_log(Txt) of
+                true -> From ! {io_reply, ReplyAs, ok};
+                false -> accumulate_and_filter_io(Ref, [Msg|Acc])
+            end;
+        Msg when Msg =/= Ref ->
+            accumulate_and_filter_io(Ref, [Msg|Acc])
+    after 50 -> % give some time since logging is async in disk_log
+        receive
+            Ref -> % done, reinject IO messages we didn't filter
+                [self() ! Msg || Msg <- lists:reverse(Acc)]
+        end
+    end.
+
+matches_log(Txt) ->
+    match =:= re:run(Txt, "disk_log: repairing.*" ?DEFAULT_HISTORY_FILE,
+                     [{capture, none}]).
 
 %% Return whether the shell history is enabled or not
 -spec history_status() -> enabled | disabled.
@@ -140,7 +167,7 @@ history_status() ->
 %% Open a disk_log file while ensuring the required path is there.
 open_log() ->
     Opts = log_options(),
-    ensure_path(Opts),
+    _ = ensure_path(Opts),
     disk_log:open(Opts).
 
 %% Return logger options (with repair disabled)
@@ -246,9 +273,9 @@ resize_log(Name, _OldSize, NewSize) ->
     show('$#erlang-history-resize-attempt',
          "Attempting to resize the log history file to ~p...", [NewSize]),
     Opts = lists:keydelete(size, 1, log_options()),
-    case disk_log:open(Opts) of
+    _ = case disk_log:open(Opts) of
         {error, {need_repair, _}} ->
-            repair_log(Name),
+            _ = repair_log(Name),
             disk_log:open(Opts);
         _ ->
             ok
