@@ -1,8 +1,11 @@
 # erlang-history #
 
-erlang-history is a tiny pair of files that can be used to patch an Erlang-OTP system to add support for history in the Erlang shell.
+erlang-history is a tiny pair of files that can be used to patch an Erlang-OTP system to add support for history in the Erlang shell before Erlang/OTP-20.
 
 The history supported is the one available through up/down arrows on the keyboard.
+
+Since Erlang/OTP-20rc2, Shell history is supported out of the box (although initially disabled by default) through a port of this library to the Erlang/OTP code base.
+Enable the shell in these versions by setting the `shell_history` kernel environment variable to `enabled` (see [Configuration Options section](#configuration-options--features) of this readme to see how to do so).
 
 ## How to install ##
 
@@ -89,7 +92,7 @@ DETS repairing of tables should be properly supported. In case of a database cor
 
 ### What Versions of Erlang/OTP does this work with? ###
 
-I've tested it with all *quarterly* versions from R13B04 up to 19.3. It worked fine for them. I plan on supporting all newer *quarterly* versions. ALL OF THEM.
+I've tested it with all *quarterly* versions from R13B04 up to 19.3. It worked fine for them. After that, the codebase from this repository was moved to the official OTP code base.
 
 To be noted is that since release 17.0, the OTP team may silently release intermediary versions of Erlang/OTP on github as patches. An example of this is
 Erlang 17.2, which was never announced, but is installable for people who need it. Those are *not* supported explicitly, but pull requests are welcome.
