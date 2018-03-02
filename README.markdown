@@ -1,10 +1,10 @@
 # erlang-history #
 
-erlang-history is a tiny pair of files that can be used to patch an Erlang-OTP system to add support for history in the Erlang shell before Erlang/OTP-20.
+erlang-history is a tiny pair of files that can be used to patch an Erlang-OTP system to add support for history in the Erlang shell **before Erlang/OTP-20**.
 
 The history supported is the one available through up/down arrows on the keyboard.
 
-Since Erlang/OTP-20rc2, Shell history is supported out of the box (although initially disabled by default) through a port of this library to the Erlang/OTP code base.
+[Since Erlang/OTP-20rc2, Shell history is **supported out of the box**](https://twitter.com/mononcqc/status/877544929496629248) (although initially disabled by default) through a port of this library to the Erlang/OTP code base.
 Enable the shell in these versions by setting the `shell_history` kernel environment variable to `enabled` with `export ERL_AFLAGS="-kernel shell_history enabled"` added to your environment variables (see [Configuration Options section](#configuration-options--features) of this readme to see more options).
 
 ## How to install ##
